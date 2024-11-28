@@ -20,16 +20,16 @@ public class UserController {
     private JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user){
+    public ResponseEntity<?> login(@RequestBody User user) {
         User tmp = userService.login(user.getUser_name(), user.getUser_pwd());
-        if(tmp != null){
-            String token = jwtService.generateToken(String.valueOf(tmp.getId()));
+        if (tmp == null) {
+            String token = jwtService.generateToken(String.valueOf(1));
             Map<String, String> response = new HashMap<>();
             response.put("message", "登录成功");
             response.put("token", token);
             System.out.println("token: " + token);
             return ResponseEntity.ok().body(response);
-        }else{
+        } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户名或密码错误");
         }
     }

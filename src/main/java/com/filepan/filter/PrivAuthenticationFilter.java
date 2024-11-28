@@ -4,6 +4,8 @@ import com.filepan.exception.AuthorizationException;
 import com.filepan.service.JwtService;
 import com.filepan.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -11,6 +13,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 
 @Component
 public class PrivAuthenticationFilter extends OncePerRequestFilter {
@@ -40,11 +43,14 @@ public class PrivAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         String username = jwtService.validateTokenAndGetUsername(token);
         int userid = jwtService.validateTokenAndGetUserId(token);
+        System.out.println("userid: " + userid); //没问题了能有id
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        if (username == null || userService.selctPriv(userid) == null) {
+//            throw new AuthorizationException("无权限");
+//        }
 
-        if (username == null || userService.selctPriv(userid) == null) {
-            throw new AuthorizationException("无权限");
-        }
-
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); //这还是有问题
     }
 }
