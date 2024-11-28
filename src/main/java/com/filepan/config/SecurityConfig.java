@@ -14,7 +14,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final PrivAuthenticationFilter privAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, PrivAuthenticationFilter privAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          PrivAuthenticationFilter privAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.privAuthenticationFilter = privAuthenticationFilter;
     }
@@ -22,14 +23,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable() // 根据需要禁用 CSRF
+                .csrf().disable()
+                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 添加无状态session配置
+                .and()
                 .authorizeRequests()
-                .antMatchers("/user/login").permitAll() // 登录路径不需要事先验证
-                .antMatchers("/user/register").permitAll() // 注册路径不需要事先验证
-                .antMatchers("/auth").authenticated() // 访问 /auth 需要认证
-                .anyRequest().authenticated() // 其他路径需要认证
+                // 白名单路径
+                .antMatchers(
+                        "/user/login",
+                        "/user/register",
+                        "/swagger-ui/**",  // Swagger UI路径
+                        "/v3/api-docs/**",  // OpenAPI路径
+                        "/error"            // 错误页面
+                ).permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(privAuthenticationFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(privAuthenticationFilter, JwtAuthenticationFilter.class)
+                .exceptionHandling();
     }
+
 }
